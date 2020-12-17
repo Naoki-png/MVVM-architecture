@@ -2,10 +2,10 @@ package com.example.meditation.view.dialog
 
 import android.app.AlertDialog
 import android.app.Dialog
-import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.meditation.MyApplication
@@ -28,6 +28,11 @@ class ThemeSelectedDialog: DialogFragment() {
             setTitle(R.string.select_theme)
             setView(recyclerView)
         }.create()
+
+        viewModel.txtTheme.observe(requireActivity(), Observer {
+            dialog.dismiss()
+        })
+
         return dialog
     }
 }
