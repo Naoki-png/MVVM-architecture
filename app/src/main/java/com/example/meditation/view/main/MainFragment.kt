@@ -1,4 +1,4 @@
-package com.example.meditation
+package com.example.meditation.view.main
 
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -13,7 +13,10 @@ import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
+import com.example.meditation.viewmodel.MainViewModel
+import com.example.meditation.R
 import com.example.meditation.databinding.FragmentMainBinding
+import com.example.meditation.util.PlayStatus
 import kotlinx.android.synthetic.main.fragment_main.*
 
 

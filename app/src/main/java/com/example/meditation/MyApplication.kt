@@ -2,13 +2,16 @@ package com.example.meditation
 
 import android.app.Application
 import android.content.Context
-import android.content.res.Resources
+import com.example.meditation.data.ThemeData
+import com.example.meditation.util.NO_BGM
+import com.example.meditation.util.ThemeId
 
 class MyApplication: Application() {
 
     override fun onCreate() {
         super.onCreate()
         appContext = this
+        themeList = setThemeData()
     }
 
     private fun setThemeData(): ArrayList<ThemeData> {

@@ -1,7 +1,11 @@
-package com.example.meditation
+package com.example.meditation.viewmodel
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.meditation.data.ThemeData
+import com.example.meditation.model.UserSettings
+import com.example.meditation.model.UserSettingsRepository
+import com.example.meditation.util.PlayStatus
 
 class MainViewModel: ViewModel() {
     var msgUpperSmall = MutableLiveData<String>()
@@ -36,5 +40,20 @@ class MainViewModel: ViewModel() {
         val seconds = timeSeconds - (minutes * 60)
         val secondsString = if (seconds < 10) "0" + seconds.toString() else seconds.toString()
         return minutesString + " : " + secondsString
+    }
+
+    fun setLevel(selectedItemId: Int) {
+        txtLevel.value = userSettingsRepository.setLevel(selectedItemId)
+    }
+
+    fun setTime(selectedItemId: Int) {
+        remainedTimeSeconds.value = userSettingsRepository.setTime(selectedItemId) * 60
+        displayTimeSeconds.value = changeTimeFormat(remainedTimeSeconds.value!!)
+    }
+
+    fun setTheme(themeData: ThemeData) {
+        userSettingsRepository.setTheme(themeData)
+        txtTheme.value = userSettingsRepository.loadUserSettings().themeName
+        themePicFileResId.value = userSettingsRepository.loadUserSettings().themeResId
     }
 }
