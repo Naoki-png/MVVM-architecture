@@ -46,19 +46,75 @@ class MainFragment : Fragment() {
             lifecycleOwner = activity
         }
         viewModel.initParameters()
+
         observeViewModel()
     }
 
     private fun observeViewModel() {
         viewModel.playStatus.observe(viewLifecycleOwner, Observer { status ->
-            when (status) {
-                PlayStatus.BEFORE_START -> btnPlay.setBackgroundResource(R.drawable.button_play)
+            updateUi(status!!)
+
+            when(status) {
+                PlayStatus.BEFORE_START -> {
+
+                }
+                PlayStatus.ON_START -> {
+                    viewModel.countDownBeforeStart()
+                }
+                PlayStatus.RUNNING -> {
+                    viewModel.startMeditation()
+                }
+                PlayStatus.PAUSE -> {
+
+                }
+                PlayStatus.END -> {
+
+                }
             }
         })
         viewModel.themePicFileResId.observe(viewLifecycleOwner, Observer { themePicResId ->
             loadBackgroundImage(this, themePicResId, meditation_screen)
         })
     }
+
+    private fun updateUi(status: Int) {
+        when(status) {
+            PlayStatus.BEFORE_START -> {
+                binding.apply {
+                    btnPlay.apply {
+                        visibility = View.VISIBLE
+                        setBackgroundResource(R.drawable.button_play)
+                    }
+                    btnFinish.visibility = View.INVISIBLE
+                    txtShowMenu.visibility = View.INVISIBLE
+                }
+            }
+            PlayStatus.ON_START -> {
+                binding.apply {
+                    btnPlay.visibility = View.INVISIBLE
+                    btnFinish.visibility = View.INVISIBLE
+                    txtShowMenu.visibility = View.VISIBLE
+                }
+            }
+            PlayStatus.RUNNING -> {
+                binding.apply {
+                    btnPlay.apply {
+                        visibility = View.VISIBLE
+                        setBackgroundResource(R.drawable.button_pause)
+                    }
+                    btnFinish.visibility = View.INVISIBLE
+                    txtShowMenu.visibility = View.VISIBLE
+                }
+            }
+            PlayStatus.PAUSE -> {
+
+            }
+            PlayStatus.END -> {
+
+            }
+        }
+    }
+
 
     private fun loadBackgroundImage(mainFragment: MainFragment, themePicResId: Int?, meditationScreen: ConstraintLayout?) {
         Glide.with(mainFragment).load(themePicResId).into(object : SimpleTarget<Drawable>() {
