@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.activityViewModels
@@ -18,11 +19,14 @@ import com.example.meditation.R
 import com.example.meditation.databinding.FragmentMainBinding
 import com.example.meditation.util.PlayStatus
 import kotlinx.android.synthetic.main.fragment_main.*
+import org.koin.android.viewmodel.ext.android.sharedViewModel
 
 
 class MainFragment : Fragment() {
 
-    private val viewModel: MainViewModel by activityViewModels()
+    //viewModelはライフサイクルをActivityとするので、
+    // Fragment間でViewModelインスタンスを共有し、情報（内部のLiveData）の変更を共有する
+    private val viewModel: MainViewModel by sharedViewModel()
     private lateinit var binding: FragmentMainBinding
 
     override fun onCreateView(
@@ -45,8 +49,23 @@ class MainFragment : Fragment() {
             // (今回はSharedViewModelなので、activityがlifecycleOwner)
             lifecycleOwner = activity
         }
-        viewModel.initParameters()
 
+        volumeSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromuser: Boolean) {
+                viewModel.setVolume(progress)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
+        viewModel.initParameters()
         observeViewModel()
     }
 
@@ -65,10 +84,10 @@ class MainFragment : Fragment() {
                     viewModel.startMeditation()
                 }
                 PlayStatus.PAUSE -> {
-
+                    viewModel.pauseMeditation()
                 }
                 PlayStatus.END -> {
-
+                    viewModel.finishMeditation()
                 }
             }
         })
@@ -107,7 +126,17 @@ class MainFragment : Fragment() {
                 }
             }
             PlayStatus.PAUSE -> {
-
+                binding.apply {
+                    btnPlay.apply {
+                        visibility = View.VISIBLE
+                        setBackgroundResource(R.drawable.button_play)
+                    }
+                    btnFinish.apply {
+                        visibility = View.VISIBLE
+                        setBackgroundResource(R.drawable.button_finish)
+                    }
+                    txtShowMenu.visibility = View.VISIBLE
+                }
             }
             PlayStatus.END -> {
 

@@ -3,8 +3,12 @@ package com.example.meditation
 import android.app.Application
 import android.content.Context
 import com.example.meditation.data.ThemeData
+import com.example.meditation.di.appModule
 import com.example.meditation.util.NO_BGM
 import com.example.meditation.util.ThemeId
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.startKoin
 
 class MyApplication: Application() {
 
@@ -12,6 +16,11 @@ class MyApplication: Application() {
         super.onCreate()
         appContext = this
         themeList = setThemeData()
+        startKoin {
+            androidLogger()
+            androidContext(this@MyApplication)
+            modules(appModule)
+        }
     }
 
     private fun setThemeData(): ArrayList<ThemeData> {

@@ -3,16 +3,17 @@ package com.example.meditation.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.example.meditation.R
 import com.example.meditation.data.ThemeData
 import com.example.meditation.model.UserSettings
 import com.example.meditation.model.UserSettingsRepository
 import com.example.meditation.util.PlayStatus
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 import java.util.*
 import kotlin.concurrent.schedule
 
-class MainViewModel(val context: Application): AndroidViewModel(context) {
+class MainViewModel(val context: Application): AndroidViewModel(context), KoinComponent {
     var msgUpperSmall = MutableLiveData<String>()
     var msgLowerLarge = MutableLiveData<String>()
     var themePicFileResId = MutableLiveData<Int>()
@@ -24,8 +25,12 @@ class MainViewModel(val context: Application): AndroidViewModel(context) {
 
     var playStatus = MutableLiveData<Int>()
 
-    private val userSettingsRepository = UserSettingsRepository()
+    var volume = MutableLiveData<Int>()
+
+    private val userSettingsRepository: UserSettingsRepository by inject()
     private lateinit var userSettings: UserSettings
+
+    private var timerMeditation: Timer? = null
 
     //呼吸間隔
     private val inhaleInterval = 4
@@ -103,6 +108,45 @@ class MainViewModel(val context: Application): AndroidViewModel(context) {
 
         msgUpperSmall.value = context.resources.getString(R.string.inhale)
         msgLowerLarge.value = inhaleInterval.toString()
+
+        clockMeditation()
+    }
+
+    private fun clockMeditation() {
+        var timeElapsed = 0
+        timerMeditation = Timer()
+        timerMeditation?.schedule(1000, 1000) {
+            val temTime = remainedTimeSeconds.value!! - 1
+            remainedTimeSeconds.postValue(temTime)
+            displayTimeSeconds.postValue(changeTimeFormat(temTime))
+            if (remainedTimeSeconds.value!! <= 1) {
+                msgUpperSmall.postValue("")
+                msgLowerLarge.postValue(context.resources.getString(R.string.meiso_finish))
+                playStatus.postValue(PlayStatus.END)
+                cancelTimer()
+                return@schedule
+            }
+            //todo 経過時間に応じて文言を変える
+            timeElapsed = if (timeElapsed >= totalInterval - 1) 0 else timeElapsed + 1
+            setDisplayText(timeElapsed)
+        }
+    }
+
+    private fun setDisplayText(timeElapsed: Int) {
+        if (timeElapsed >= 0 && timeElapsed < inhaleInterval) {
+            msgUpperSmall.postValue(context.resources.getString(R.string.inhale))
+            msgLowerLarge.postValue((inhaleInterval - timeElapsed).toString())
+        } else if (timeElapsed < inhaleInterval + holdInterval) {
+            msgUpperSmall.postValue(context.resources.getString(R.string.hold))
+            msgLowerLarge.postValue((inhaleInterval + holdInterval - timeElapsed).toString())
+        } else {
+            msgUpperSmall.postValue(context.resources.getString(R.string.exhale))
+            msgLowerLarge.postValue((totalInterval - timeElapsed).toString())
+        }
+    }
+
+    private fun cancelTimer() {
+        timerMeditation?.cancel()
     }
 
     private fun adjustRemainedTime(remainedTime: Int?, totalInterval: Int): Int? {
@@ -134,5 +178,27 @@ class MainViewModel(val context: Application): AndroidViewModel(context) {
             3 -> 16
             else -> 0
         }
+    }
+
+    fun pauseMeditation() {
+        cancelTimer()
+    }
+
+    fun finishMeditation() {
+        cancelTimer()
+        playStatus.value = PlayStatus.BEFORE_START
+        remainedTimeSeconds.value = userSettingsRepository.loadUserSettings().time * 60
+        displayTimeSeconds.value = changeTimeFormat(remainedTimeSeconds.value!!)
+        msgUpperSmall.value = ""
+        msgLowerLarge.value = context.resources.getString(R.string.meiso_finish)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        cancelTimer()
+    }
+
+    fun setVolume(progress: Int) {
+        volume.value = progress
     }
 }
